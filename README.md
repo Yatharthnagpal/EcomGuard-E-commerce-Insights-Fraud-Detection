@@ -76,9 +76,3 @@ Users can filter and interact with the data by region, product category, or time
 ## License
 
 This project is licensed under the [MIT License](https://github.com/Yatharthnagpal/EcomGuard-E-commerce-Insights-Fraud-Detection/blob/main/LICENSE).
-
-## Acknowledgments
-
-- Powered by the Python ecosystem and popular data science libraries.
-- Special thanks to the contributors and maintainers of the open-source libraries used in this project.
-```
