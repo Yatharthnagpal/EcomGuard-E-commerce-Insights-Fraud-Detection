@@ -3,19 +3,6 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 import os
-from dash import Dash
-from src.dashboard import create_dashboard
-
-# Initialize the Dash app
-app = Dash(__name__)
-
-# Create the dashboard layout
-create_dashboard(app)
-
-# Run the server
-if __name__ == '__main__':
-    app.run_server(debug=True)
-
 
 # Set page title and description
 st.set_page_config(page_title="EcomGuard: E-commerce Insights & Fraud Detection")
@@ -27,15 +14,18 @@ st.markdown("""
     Analyze daily profits, identify the most popular products, and flag suspicious orders.
 """)
 
+# Define default file path
+output_dir = "data"
+os.makedirs(output_dir, exist_ok=True)  # Ensure the directory exists
+default_csv = os.path.join(output_dir, "ecommerce_data.csv")
+
 # File Upload Section
 st.subheader("Upload or Use Default CSV File")
 
-# Check if the default CSV file exists 
-#yeh bta niche wale mei pura path dalu ya ese hi poor path!
-default_csv = "C:\\Users\\Yatharth nagpal\\Desktop\\challenge3\\data\\ecommerce_data.csv"
+# Initialize data frame
 df = None
 
-# Load the default CSV file if it exists, or allow the user to upload a file
+# Check if the default CSV file exists
 if os.path.exists(default_csv):
     st.write(f"Default CSV file found: `{default_csv}`")
     use_default = st.checkbox("Use default CSV file", value=True)
@@ -67,25 +57,33 @@ if df is not None:
     if 'profit' in df.columns and 'order_date' in df.columns:
         st.subheader("Daily Profit/Loss")
         daily_profit = df.groupby('order_date')['profit'].sum().reset_index()
-        plt.figure(figsize=(10, 5))
-        sns.lineplot(x='order_date', y='profit', data=daily_profit)
-        plt.xticks(rotation=45)
-        plt.title("Daily Profit/Loss")
-        plt.xlabel("Date")
-        plt.ylabel("Profit")
-        st.pyplot(plt)
+        
+        if not daily_profit.empty:
+            plt.figure(figsize=(10, 5))
+            sns.lineplot(x='order_date', y='profit', data=daily_profit)
+            plt.xticks(rotation=45)
+            plt.title("Daily Profit/Loss")
+            plt.xlabel("Date")
+            plt.ylabel("Profit")
+            st.pyplot(plt)
+        else:
+            st.info("No data available for Daily Profit/Loss analysis.")
 
     # Most Popular Products Analysis
     if 'product_name' in df.columns:
         st.subheader("Most Popular Products")
         popular_products = df['product_name'].value_counts().head(10)
-        plt.figure(figsize=(10, 5))
-        sns.barplot(x=popular_products.index, y=popular_products.values)
-        plt.title("Top 10 Most Popular Products")
-        plt.xlabel("Product Name")
-        plt.ylabel("Number of Orders")
-        plt.xticks(rotation=45)
-        st.pyplot(plt)
+        
+        if not popular_products.empty:
+            plt.figure(figsize=(10, 5))
+            sns.barplot(x=popular_products.index, y=popular_products.values)
+            plt.title("Top 10 Most Popular Products")
+            plt.xlabel("Product Name")
+            plt.ylabel("Number of Orders")
+            plt.xticks(rotation=45)
+            st.pyplot(plt)
+        else:
+            st.info("No data available for Popular Products analysis.")
 
     # Category and Order Status Filters
     if 'category' in df.columns and 'order_status' in df.columns:
@@ -104,9 +102,11 @@ if df is not None:
         # Define fraud as orders with a discount greater than 50% of total price
         df['potential_fraud'] = df['discount'] > (0.5 * df['total_price'])
         fraud_orders = df[df['potential_fraud']]
-        st.write("Flagged Fraudulent Orders:")
-        st.dataframe(fraud_orders)
-
+        
+        if not fraud_orders.empty:
+            st.write("Flagged Fraudulent Orders:")
+            st.dataframe(fraud_orders)
+        else:
+            st.info("No fraudulent orders detected.")
 else:
     st.error("No data available. Please upload a CSV file.")
-

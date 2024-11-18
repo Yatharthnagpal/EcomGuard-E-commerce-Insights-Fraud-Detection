@@ -1,62 +1,57 @@
 import pandas as pd
-import numpy as np
-from faker import Faker
 import random
+import os
+from faker import Faker
 
-# Initialize Faker
+# Initialize Faker for generating fake data
 fake = Faker()
 
-# Define the number of rows
-num_rows = 100000
+# Define the output directory and file path
+output_dir = "data"
+os.makedirs(output_dir, exist_ok=True)  # Create directory if it doesn't exist
+default_csv = os.path.join(output_dir, "ecommerce_data.csv")
 
-# Define sample data
-product_names = ["Laptop", "Smartphone", "Headphones", "Smartwatch", "Tablet", "Camera"]
-categories = ["Electronics", "Fashion", "Home", "Toys", "Beauty"]
-coupon_codes = ["SAVE10", "DISCOUNT20", "FREESHIP", "SUMMER50", None]
-payment_methods = ["Credit Card", "PayPal", "Gift Card", "Bitcoin"]
-statuses = ["Completed", "Pending", "Cancelled", "Refunded"]
+def generate_synthetic_data(num_rows=100000):
+    """
+    Generate synthetic e-commerce data.
+    
+    Parameters:
+        num_rows (int): Number of rows to generate.
+    
+    Returns:
+        pd.DataFrame: Synthetic e-commerce data.
+    """
+    # Define categories and sample data
+    categories = ["Electronics", "Clothing", "Home & Kitchen", "Books", "Beauty", "Toys"]
+    order_statuses = ["Delivered", "Cancelled", "Refunded", "Processing"]
+    product_names = [f"Product_{i}" for i in range(1, 101)]
+    
+    data = {
+        "order_id": [fake.uuid4() for _ in range(num_rows)],
+        "order_date": [fake.date_between(start_date="-1y", end_date="today") for _ in range(num_rows)],
+        "customer_id": [fake.uuid4() for _ in range(num_rows)],
+        "product_name": [random.choice(product_names) for _ in range(num_rows)],
+        "category": [random.choice(categories) for _ in range(num_rows)],
+        "order_status": [random.choice(order_statuses) for _ in range(num_rows)],
+        "quantity": [random.randint(1, 5) for _ in range(num_rows)],
+        "unit_price": [round(random.uniform(10, 500), 2) for _ in range(num_rows)],
+        "discount": [round(random.uniform(0, 100), 2) for _ in range(num_rows)],
+    }
+    
+    # Calculate total price and profit
+    df = pd.DataFrame(data)
+    df["total_price"] = (df["quantity"] * df["unit_price"]).round(2)
+    df["profit"] = (df["total_price"] - df["discount"]).round(2)
+    
+    return df
 
-# Helper function to generate synthetic data
-def generate_data(num_rows):
-    data = []
-    for _ in range(num_rows):
-        order_id = fake.uuid4()
-        customer_name = fake.name()
-        product_name = random.choice(product_names)
-        category = random.choice(categories)
-        quantity = random.randint(1, 10)
-        unit_price = round(random.uniform(10, 1000), 2)
-        total_price = round(unit_price * quantity, 2)
-        discount = round(random.uniform(0, 0.3) * total_price, 2)
-        total_discount = round(total_price - discount, 2)
-        coupon_code = random.choice(coupon_codes)
-        payment_method = random.choice(payment_methods)
-        order_status = random.choice(statuses)
-        order_date = fake.date_this_year()
-        cost_price = round(unit_price * random.uniform(0.5, 0.8), 2)
-        profit = total_price - discount - (cost_price * quantity)
+if __name__ == "__main__":
+    # User input for the number of rows
+    num_rows = input("Enter the number of rows to generate (default: 100,000): ")
+    num_rows = int(num_rows) if num_rows.isdigit() else 100000
 
-        data.append([
-            order_id, customer_name, product_name, category, quantity,
-            unit_price, total_price, discount, total_discount,
-            coupon_code, payment_method, order_status, order_date,
-            cost_price, profit
-        ])
-
-    return data
-
-# Define column names
-columns = [
-    "order_id", "customer_name", "product_name", "category", "quantity",
-    "unit_price", "total_price", "discount", "total_discount",
-    "coupon_code", "payment_method", "order_status", "order_date",
-    "cost_price", "profit"
-]
-
-# Generate data and create DataFrame
-data = generate_data(num_rows)
-df = pd.DataFrame(data, columns=columns)
-
-# Save DataFrame to CSV
-df.to_csv("ecommerce_data.csv", index=False)
-print("Data generated and saved as 'ecommerce_data.csv'.")
+    # Generate data and save to CSV
+    df = generate_synthetic_data(num_rows)
+    df.to_csv(default_csv, index=False)
+    
+    print(f"Synthetic e-commerce data generated and saved to: {default_csv}")
