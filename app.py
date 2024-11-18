@@ -30,8 +30,9 @@ st.markdown("""
 # File Upload Section
 st.subheader("Upload or Use Default CSV File")
 
-# Check if the default CSV file exists
-default_csv = "ecommerce_data.csv"
+# Check if the default CSV file exists 
+#yeh bta niche wale mei pura path dalu ya ese hi poor path!
+default_csv = "C:\\Users\\Yatharth nagpal\\Desktop\\challenge3\\data\\ecommerce_data.csv"
 df = None
 
 # Load the default CSV file if it exists, or allow the user to upload a file
@@ -108,3 +109,4 @@ if df is not None:
 
 else:
     st.error("No data available. Please upload a CSV file.")
+
